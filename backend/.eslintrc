@@ -1,0 +1,17 @@
+{
+  "extends": ["eslint:recommended", "plugin:import/errors", "prettier"],
+  "rules": {
+    "no-console": 1
+  },
+  "plugins": ["import"],
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "env": {
+    "es6": true,
+    "browser": true,
+    "node": true
+  }
+}
