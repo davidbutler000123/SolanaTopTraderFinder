@@ -1,6 +1,10 @@
 const axios = require('axios');
 const fs = require('fs');
 const { Transaction } = require('./models')
+const { COIN_TOKENS } = require('./utils/coin_tokens')
+
+const TARGET_TOKEN_ADDRESS = COIN_TOKENS[process.env.TARGET_NAME].address
+const TARGET_TOKEN_SYMBOL = COIN_TOKENS[process.env.TARGET_NAME].symbol
 
 const   DB_RANGE_TIME = 1000 * 3600 * 24 * 1   // 1 day
 const   TX_FETCH_PERIOD = 20 * 1000 // 20 seconds
@@ -110,7 +114,7 @@ function get_pair_transactions(pair_addr, limit) {
 
 function get_token_transactions(offset, limit, go_back) {
     txInsCountPerFetch = 0
-    let query = `https://public-api.birdeye.so/defi/txs/token?address=${process.env.TARGET_TOKEN_ADDRESS}&offset=${offset}&limit=${limit}&sort_type=desc`
+    let query = `https://public-api.birdeye.so/defi/txs/token?address=${TARGET_TOKEN_ADDRESS}&offset=${offset}&limit=${limit}&sort_type=desc`
     axios.get(query, {
         headers: {
             'accept': 'application/json',
@@ -133,7 +137,7 @@ function get_token_transactions(offset, limit, go_back) {
             txBackIndex += txs.length
             setTimeout(function() {
                 get_token_transactions(txBackIndex, limit, true)
-            }, 10)
+            }, 1)
         }
         saveTokenTxsToDB(txs)
     })
@@ -156,6 +160,8 @@ function savePairTxsToDB(txs) {
             return
         }
 
+        if(tx.source.indexOf('raydium') != 0) return
+
         const fromPrice = tx.from.price ? tx.from.price : tx.from.nearestPrice
         const toPrice = tx.to.price ? tx.to.price : tx.to.nearestPrice
         let total = fromPrice ? fromPrice * tx.from.uiAmount : toPrice * tx.to.uiAmount
@@ -167,8 +173,8 @@ function savePairTxsToDB(txs) {
         else type = 'sell'
         const fromSymbol = tx.from.symbol ? tx.from.symbol : 'unknown'
         const toSymbol = tx.to.symbol ? tx.to.symbol : 'unknown'
-        let tokenSymbol = fromSymbol
-        if(tokenSymbol == 'RAY') tokenSymbol = toSymbol
+        let tradeSymbol = fromSymbol
+        if(tradeSymbol == TARGET_TOKEN_SYMBOL) tradeSymbol = toSymbol
 
         if(type == 'buy') total *= (-1.0)
 
@@ -179,7 +185,7 @@ function savePairTxsToDB(txs) {
             owner: tx.owner,
             type: type,
             total: total,
-            tokenSymbol: tokenSymbol,
+            tradeSymbol: tradeSymbol,
             fromSymbol: fromSymbol,
             fromPrice: fromPrice,
             fromAmount: tx.from.uiAmount,
@@ -212,6 +218,7 @@ function saveTokenTxsToDB(txs) {
         }
 
         if(tx.txType != 'swap') return
+        if(tx.source.indexOf('raydium') != 0) return
 
         const fromPrice = tx.from.price ? tx.from.price : tx.from.nearestPrice
         const toPrice = tx.to.price ? tx.to.price : tx.to.nearestPrice
@@ -219,8 +226,8 @@ function saveTokenTxsToDB(txs) {
         let type = tx.side        
         const fromSymbol = tx.from.symbol ? tx.from.symbol : 'unknown'
         const toSymbol = tx.to.symbol ? tx.to.symbol : 'unknown'
-        let tokenSymbol = fromSymbol
-        if(tokenSymbol == 'RAY') tokenSymbol = toSymbol
+        let tradeSymbol = fromSymbol
+        if(tradeSymbol == TARGET_TOKEN_SYMBOL) tradeSymbol = toSymbol
 
         if(type == 'buy') total *= (-1.0)
 
@@ -231,7 +238,7 @@ function saveTokenTxsToDB(txs) {
             owner: tx.owner,
             type: type,
             total: total,
-            tokenSymbol: tokenSymbol,
+            tradeSymbol: tradeSymbol,
             fromSymbol: fromSymbol,
             fromPrice: fromPrice,
             fromAmount: tx.from.uiAmount,
@@ -328,7 +335,7 @@ const sortWallets = () => {
                     $match: { owner: wallet._id }
                 },
                 {
-                    $group: { _id: '$tokenSymbol', total: { $sum: '$total'} }
+                    $group: { _id: '$tradeSymbol', total: { $sum: '$total'} }
                 }                
             ]).exec()            
             let totalTrades = trades.length

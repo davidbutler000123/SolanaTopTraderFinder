@@ -8,7 +8,7 @@ const txSchema = mongoose.Schema({
   owner: { type: String, required: true },
   type: { type: String, required: true },   // buy or sell
   total: { type: Number, required: true },
-  tokenSymbol: { type: String, required: true },
+  tradeSymbol: { type: String, required: true },
   fromSymbol: { type: String, required: true },   // from symbol, for example 'USDC'
   fromPrice: { type: Number },
   fromAmount: { type: Number, required: true },

@@ -22,7 +22,7 @@ const toDataURL = (url) => {
 const App = () => {
   const [data, setData] = useState([]);
   useEffect(() => {
-    fetch("http://localhost:5050/api/wallets")
+    fetch("http://192.168.140.171:5050/api/wallets")
       .then((res) => res.json())
       .then(async (data) => {
         console.log(data);
@@ -34,14 +34,14 @@ const App = () => {
   const exportExcelFile = () => {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("My Sheet");
-    sheet.properties.defaultRowHeight = 80;
+    // sheet.properties.defaultRowHeight = 80;
 
-    sheet.getRow(1).border = {
-      top: { style: "thick", color: { argb: "FFFF0000" } },
-      left: { style: "thick", color: { argb: "000000FF" } },
-      bottom: { style: "thick", color: { argb: "F08080" } },
-      right: { style: "thick", color: { argb: "FF00FF00" } },
-    };
+    // sheet.getRow(1).border = {
+    //   top: { style: "thick", color: { argb: "FFFF0000" } },
+    //   left: { style: "thick", color: { argb: "000000FF" } },
+    //   bottom: { style: "thick", color: { argb: "F08080" } },
+    //   right: { style: "thick", color: { argb: "FF00FF00" } },
+    // };
 
     sheet.getRow(1).fill = {
       type: "pattern",
@@ -51,8 +51,7 @@ const App = () => {
 
     sheet.getRow(1).font = {
       name: "Comic Sans MS",
-      family: 4,
-      size: 16,
+      family: 4,      
       bold: true,
     };
 
@@ -121,20 +120,20 @@ const App = () => {
     );
 
     promise.then(() => {
-      const priceCol = sheet.getColumn(5);
+      // const priceCol = sheet.getColumn(5);
 
-      // iterate over all current cells in this column
-      priceCol.eachCell((cell) => {
-        const cellValue = sheet.getCell(cell?.address).value;
-        // add a condition to set styling
-        if (cellValue > 50 && cellValue < 1000) {
-          sheet.getCell(cell?.address).fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: { argb: "FF0000" },
-          };
-        }
-      });
+      // // iterate over all current cells in this column
+      // priceCol.eachCell((cell) => {
+      //   const cellValue = sheet.getCell(cell?.address).value;
+      //   // add a condition to set styling
+      //   if (cellValue > 50 && cellValue < 1000) {
+      //     sheet.getCell(cell?.address).fill = {
+      //       type: "pattern",
+      //       pattern: "solid",
+      //       fgColor: { argb: "FF0000" },
+      //     };
+      //   }
+      // });
 
       workbook.xlsx.writeBuffer().then(function (data) {
         const blob = new Blob([data], {

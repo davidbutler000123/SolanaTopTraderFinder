@@ -2,6 +2,7 @@
 
 var WebSocketClient = require('websocket').client;
 const util = require("util")
+const { COIN_TOKENS } = require('./utils/coin_tokens')
 const CHAIN= 'solana'
 
 var client = new WebSocketClient();
@@ -59,7 +60,7 @@ client.on('connect', async function (connection) {
     const msg = {
         type: "SUBSCRIBE_TXS",
         data: {            
-            address: process.env.TARGET_TOKEN_ADDRESS
+            address: COIN_TOKENS[process.env.TARGET_NAME]
         }
     }
 

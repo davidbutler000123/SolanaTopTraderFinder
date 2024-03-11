@@ -2,7 +2,7 @@
   "name": "raydium_toptrader",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:3000",
+  "proxy": "http://192.168.140.171:5050",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.1.1",
