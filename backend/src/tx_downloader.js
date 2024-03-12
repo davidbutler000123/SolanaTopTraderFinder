@@ -181,7 +181,6 @@ function savePairTxsToDB(txs) {
         const t = new Transaction({
             blockUnixTime: tx.blockUnixTime,
             source: tx.source,
-            poolId: tx.address,
             owner: tx.owner,
             type: type,
             total: total,
@@ -209,7 +208,6 @@ function saveTokenTxsToDB(txs) {
     txs.forEach(async tx => {
         const existTx = await Transaction.findOne({
             blockUnixTime: tx.blockUnixTime,
-            poolId: tx.poolId,
             source: tx.source
         })        
         
@@ -234,17 +232,16 @@ function saveTokenTxsToDB(txs) {
         const t = new Transaction({
             blockUnixTime: tx.blockUnixTime,
             source: tx.source,
-            poolId: tx.poolId,
             owner: tx.owner,
             type: type,
             total: total,
             tradeSymbol: tradeSymbol,
             fromSymbol: fromSymbol,
-            fromPrice: fromPrice,
-            fromAmount: tx.from.uiAmount,
-            toSymbol: toSymbol,
-            toPrice: toPrice,
-            toAmount: tx.to.uiAmount
+            // fromPrice: fromPrice,
+            // fromAmount: tx.from.uiAmount,
+            toSymbol: toSymbol
+            // toPrice: toPrice,
+            // toAmount: tx.to.uiAmount
         })
 
         t.save()
@@ -291,6 +288,23 @@ async function removeAWeekAgoTransactions() {
     const result = await Transaction.deleteMany({
         blockUnixTime: {$lt: nStartLimitTime}
     })
+    let txEarliest = await Transaction.find().sort({blockUnixTime: 1}).limit(1)
+    let txLatest = await Transaction.find().sort({blockUnixTime: -1}).limit(1)
+    let timeRangeStart = 'unknown'
+    let timeRangeEnd = 'unknown'
+    if(txEarliest && txEarliest.length > 0) {
+        let unixTimeStart = txEarliest[0].blockUnixTime * 1000
+        timeRangeStart = new Date(unixTimeStart).toLocaleDateString("en-US")
+        timeRangeStart += ' '
+        timeRangeStart += new Date(unixTimeStart).toLocaleTimeString()
+    }
+    if(txLatest && txLatest.length > 0) {
+        let unixTimeEnd = txLatest[0].blockUnixTime * 1000
+        timeRangeEnd = new Date(unixTimeEnd).toLocaleDateString("en-US")
+        timeRangeEnd += ' '
+        timeRangeEnd += new Date(unixTimeEnd).toLocaleTimeString()
+    }        
+    console.log(`DB_TIME_RANGE: ${timeRangeStart} ~ ${timeRangeEnd}`)
     //console.log('Deleted transactions: ', result.deletedCount)
 }
 
@@ -309,7 +323,7 @@ function startDownloadByPair() {
 }
 
 function startDownloadByToken() {
-    get_token_transactions(0, 50, true)
+    //get_token_transactions(0, 50, true)
     //setInterval(fetchLatestRaydiumTxsByToken, 2000)
     setTimeout(() => {
         setInterval(removeAWeekAgoTransactions, TX_FETCH_PERIOD)
