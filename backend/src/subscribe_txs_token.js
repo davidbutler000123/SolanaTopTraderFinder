@@ -32,7 +32,7 @@ client.on('connect', async function (connection) {
         console.log('echo-protocol Connection Closed');
         setTimeout(connectBirdeyeWss, 3000)
     });
-    connection.on('message', function (message) {        
+    connection.on('message', async function (message) {        
         if (message.type === 'utf8') {
             const msgObj = JSON.parse(message.utf8Data)
             if(msgObj.type != 'TXS_DATA') return
@@ -42,13 +42,16 @@ client.on('connect', async function (connection) {
                 return
             }
 
+            //console.log(`owner=${tx.owner}, total=${tx.volumeUSD}, type=${tx.side}, from=${tx.from.amount}, to=${tx.to.amount}, poolId=${tx.poolId}`)
+
             const fromPrice = tx.from.price ? tx.from.price : tx.from.nearestPrice
             const toPrice = tx.to.price ? tx.to.price : tx.to.nearestPrice
-            let total = fromPrice ? fromPrice * tx.from.uiAmount : toPrice * tx.to.uiAmount
+            //let total = fromPrice ? fromPrice * tx.from.uiAmount : toPrice * tx.to.uiAmount
+            let total = tx.volumeUSD
             let type = tx.side
-
+            
             // filtering out non-swap transactions
-            if(!tx.poolId || tx.from.amount == 0 || !tx.to.amount || !total) return
+            if(!type || tx.from.amount == 0 || !tx.to.amount || !total) return
 
             const fromSymbol = tx.from.symbol ? tx.from.symbol : 'unknown'
             const toSymbol = tx.to.symbol ? tx.to.symbol : 'unknown'
@@ -57,6 +60,17 @@ client.on('connect', async function (connection) {
 
             if(type == 'sell') total *= (-1.0)
             
+            const existTx = await Transaction.findOne({
+                blockUnixTime: tx.blockUnixTime,
+                owner: tx.owner,
+                type: type,
+                total: total
+            })
+            
+            if(existTx) {
+                return
+            }
+
             const t = new Transaction({
                 blockUnixTime: tx.blockUnixTime,
                 source: tx.source,
@@ -91,6 +105,7 @@ client.on('connect', async function (connection) {
 });
 
 function connectBirdeyeWss() {
+    client.abort()
     console.log(`Trying to connect BirdEye WSS: ${WSS_TOKEN_URL}`)
     client.connect(WSS_TOKEN_URL, 'echo-protocol', "https://birdeye.so");
 }
@@ -98,5 +113,6 @@ function connectBirdeyeWss() {
 connectBirdeyeWss()
 
 module.exports = {
-    SubscriberTxCounter
+    SubscriberTxCounter,
+    connectBirdeyeWss
 }

@@ -71,12 +71,12 @@ const App = () => {
         width: 20,
       },
       {
-        header: "Average Profit",
+        header: "Avg Profit(K USD)",
         key: "avgProfit",
         width: 15,
       },
       {
-        header: "Total Profit",
+        header: "Total Profit(K USD)",
         key: "totalProfit",
         width: 15,
       },
@@ -164,8 +164,8 @@ const App = () => {
             <th scope="col">Wallet</th>
             <th scope="col">Ranking</th>
             <th scope="col">Solscan Link</th>
-            <th scope="col">Average Profit</th>
-            <th scope="col">Total Profit</th>
+            <th scope="col">Avg Profit(K USD)</th>
+            <th scope="col">Total Profit(K USD)</th>
             <th scope="col">Pofitable Trades#</th>
             <th scope="col">Total Trades#</th>
             <th scope="col">Trade Score%</th>
