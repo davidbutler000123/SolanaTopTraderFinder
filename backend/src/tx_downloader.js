@@ -6,7 +6,7 @@ const { COIN_TOKENS } = require('./utils/coin_tokens')
 const TARGET_TOKEN_ADDRESS = COIN_TOKENS[process.env.TARGET_NAME].address
 const TARGET_TOKEN_SYMBOL = COIN_TOKENS[process.env.TARGET_NAME].symbol
 
-const   DB_RANGE_TIME = 1000 * 3600 * 24 * 1   // 1 day
+const   DB_RANGE_TIME = 1000 * 3600 * 24 * 7   // 7 day = 1 week
 const   TX_FETCH_PERIOD = 20 * 1000 // 20 seconds
 
 const apiKey = '6HBMQ4KR98UE15FRPR394CF7ZXARF4J132';
@@ -277,8 +277,8 @@ function fetchLatestRaydiumTxsByToken() {
 }
 
 async function removeAWeekAgoTransactions() {
-    const aDayAgo = new Date(Date.now() - DB_RANGE_TIME)
-    const nStartLimitTime = Math.floor(aDayAgo.getTime() / 1000)
+    const aWeekAgo = new Date(Date.now() - DB_RANGE_TIME)
+    const nStartLimitTime = Math.floor(aWeekAgo.getTime() / 1000)
     
     // Transaction.find({ blockUnixTime: { $lt: nStartLimitTime } })
     // .then(docs => {
@@ -317,10 +317,6 @@ function startDownloadByToken() {
 }
 
 const sortWallets = () => {
-
-    const aDayAgo = new Date(Date.now() - DB_RANGE_TIME)
-    const nStartLimitTime = Math.floor(aDayAgo.getTime() / 1000)
-
     return new Promise(async (resolve, reject) => {        
         const pipeline = [
             { $group: { _id:'$owner', total: { $sum: '$total'}}},
