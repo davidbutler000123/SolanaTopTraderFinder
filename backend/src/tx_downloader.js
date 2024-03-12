@@ -2,6 +2,7 @@ const axios = require('axios');
 const fs = require('fs');
 const { Transaction } = require('./models')
 const { COIN_TOKENS } = require('./utils/coin_tokens')
+const { SubscriberTxCounter } = require('./subscribe_txs_token')
 
 const TARGET_TOKEN_ADDRESS = COIN_TOKENS[process.env.TARGET_NAME].address
 const TARGET_TOKEN_SYMBOL = COIN_TOKENS[process.env.TARGET_NAME].symbol
@@ -304,7 +305,8 @@ async function removeAWeekAgoTransactions() {
         timeRangeEnd += ' '
         timeRangeEnd += new Date(unixTimeEnd).toLocaleTimeString()
     }        
-    console.log(`DB_TIME_RANGE: ${timeRangeStart} ~ ${timeRangeEnd}`)
+    console.log(`DB_TIME_RANGE: ${timeRangeStart} ~ ${timeRangeEnd}, ${SubscriberTxCounter.count} added.`)
+    SubscriberTxCounter.clear()
     //console.log('Deleted transactions: ', result.deletedCount)
 }
 

@@ -8,6 +8,15 @@ const CHAIN= 'solana'
 var client = new WebSocketClient();
 const { Transaction } = require('./models')
 const WSS_TOKEN_URL = util.format(`wss://public-api.birdeye.so/socket/${CHAIN}?x-api-key=${process.env.BIRDEYE_API_KEY}`)
+let SubscriberTxCounter = {
+    count: 0,
+    clear: function() {
+        SubscriberTxCounter.count = 0
+    },
+    add: function() {
+        SubscriberTxCounter.count++
+    }    
+}
 
 client.on('connectFailed', function (error) {
     console.log('Connect Error: ' + error.toString());
@@ -17,13 +26,13 @@ client.on('connect', async function (connection) {
     console.log('WebSocket Client Connected');
     connection.on('error', function (error) {
         console.log("Connection Error: " + error.toString());        
-        setTimeout(connectBirdeyeWss, 3000)
+        connection.close()
     });
     connection.on('close', function () {
         console.log('echo-protocol Connection Closed');
         setTimeout(connectBirdeyeWss, 3000)
     });
-    connection.on('message', function (message) {
+    connection.on('message', function (message) {        
         if (message.type === 'utf8') {
             const msgObj = JSON.parse(message.utf8Data)
             if(msgObj.type != 'TXS_DATA') return
@@ -63,9 +72,8 @@ client.on('connect', async function (connection) {
                 // toAmount: tx.to.uiAmount
             })
             t.save()
-            .then(item => {
-                if(item.source.indexOf('raydium') != 0)
-                console.log(`invalid transaction inserted: ${item.source}`)
+            .then(item => {                
+                SubscriberTxCounter.add()                
             })
             .catch((e) => {
                 console.log('ERROR: ', tx, '----------------->', e)
@@ -88,3 +96,7 @@ function connectBirdeyeWss() {
 }
 
 connectBirdeyeWss()
+
+module.exports = {
+    SubscriberTxCounter
+}
