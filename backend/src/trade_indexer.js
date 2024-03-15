@@ -41,7 +41,7 @@ async function deleteDuplicates() {
             ids: 1,
             count: 1, // Include or exclude count as needed
         }
-    }]
+    }], { allowDiskUse: true }
     ).exec()
 
     let dupIds = []
@@ -106,7 +106,7 @@ async function doIndexing() {
         }}
     ]
 
-    let tradesByWallet = await Transaction.aggregate(pipeline).exec()    
+    let tradesByWallet = await Transaction.aggregate(pipeline, { allowDiskUse: true }).exec()    
     console.log('Indexed transactions count: ' + tradesByWallet.length + ', calc_time: ' + (nowTime - lastIndexingTime))
     
     // ************ insert new trade_index ****************

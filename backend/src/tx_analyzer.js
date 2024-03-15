@@ -11,7 +11,7 @@ const sortWallets = () => {
             { $group: { _id:'$owner', total: { $sum: '$total'}}},
             { $sort: { 'total': -1 } }
         ]
-        let topWallets = await Transaction.aggregate(pipeline).limit(20).exec()
+        let topWallets = await Transaction.aggregate(pipeline, { allowDiskUse: true }).limit(20).exec()
         let wallets = []
         let ranking = 1
         for(let wallet of topWallets) {
@@ -25,7 +25,7 @@ const sortWallets = () => {
                 {
                     $group: { _id: '$tradeSymbol', total: { $sum: '$total'} }
                 }                
-            ]).exec()            
+            ], { allowDiskUse: true }).exec()            
             let totalTrades = trades.length
             let profitableTrades = trades.filter(trade => trade.total > 0).length
             let tradeScore = `${Math.round(100 * profitableTrades / totalTrades)}%`
