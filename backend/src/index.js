@@ -14,6 +14,8 @@ import { guard, newToken } from './utils/auth';
 
 const txDownloader = require('./tx_downloader')
 const txSubscriber = require('./subscribe_txs_token')
+const tradeIndexr = require('./trade_indexer')
+const txAanalyzer = require('./tx_analyzer')
 
 const app = express();
 
@@ -37,7 +39,8 @@ app.get('/api', (req, res) => {
 });
 
 app.get('/api/wallets', (req, res) => {  
-  txDownloader.sortWallets()
+  //txDownloader.sortWallets()
+  txAanalyzer.sortWallets()
   .then(wallets => {
     res.send(wallets);
   })

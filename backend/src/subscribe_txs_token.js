@@ -60,16 +60,16 @@ client.on('connect', async function (connection) {
 
             if(type == 'sell') total *= (-1.0)
             
-            const existTx = await Transaction.findOne({
-                blockUnixTime: tx.blockUnixTime,
-                owner: tx.owner,
-                type: type,
-                total: total
-            })
+            // const existTx = await Transaction.findOne({
+            //     blockUnixTime: tx.blockUnixTime,
+            //     owner: tx.owner,
+            //     type: type,
+            //     total: total
+            // })
             
-            if(existTx) {
-                return
-            }
+            // if(existTx) {
+            //     return
+            // }
 
             const t = new Transaction({
                 blockUnixTime: tx.blockUnixTime,

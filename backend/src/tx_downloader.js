@@ -2,12 +2,10 @@ const axios = require('axios');
 const fs = require('fs');
 const { Transaction } = require('./models')
 const { COIN_TOKENS } = require('./utils/coin_tokens')
-const { SubscriberTxCounter, connectBirdeyeWss } = require('./subscribe_txs_token')
 
 const TARGET_TOKEN_ADDRESS = COIN_TOKENS[process.env.TARGET_NAME].address
 const TARGET_TOKEN_SYMBOL = COIN_TOKENS[process.env.TARGET_NAME].symbol
 
-const   DB_RANGE_TIME = 1000 * 3600 * 24 * 7   // 7 day = 1 week
 const   TX_FETCH_PERIOD = 20 * 1000 // 20 seconds
 
 const apiKey = '6HBMQ4KR98UE15FRPR394CF7ZXARF4J132';
@@ -129,7 +127,7 @@ function get_token_transactions(offset, limit, go_back) {
             let start_time = txs[txs.length - 1].blockUnixTime
             let end_time = txs[0].blockUnixTime
             console.log(`got transactions: ${start_time} ~ ${end_time}`)
-            if(Date.now() - start_time * 1000 > DB_RANGE_TIME) {
+            if(Date.now() - start_time * 1000 > process.env.DB_RANGE_TIME) {
                 console.log(' ****** Fetching backward transactions is reached to limit range! ******************************')
                 return
             }
@@ -275,7 +273,7 @@ function fetchLatestRaydiumTxsByToken() {
 }
 
 async function removeAWeekAgoTransactions() {
-    const aWeekAgo = new Date(Date.now() - DB_RANGE_TIME)
+    const aWeekAgo = new Date(Date.now() - process.env.DB_RANGE_TIME)
     const nStartLimitTime = Math.floor(aWeekAgo.getTime() / 1000)
     
     // Transaction.find({ blockUnixTime: { $lt: nStartLimitTime } })
@@ -305,11 +303,7 @@ async function removeAWeekAgoTransactions() {
         timeRangeEnd += ' '
         timeRangeEnd += new Date(unixTimeEnd).toLocaleTimeString()
     }        
-    console.log(`DB_TIME_RANGE: ${timeRangeStart} ~ ${timeRangeEnd}, ${SubscriberTxCounter.count} added.`)
-    if(SubscriberTxCounter.count == 0) {
-        connectBirdeyeWss()
-    }
-    SubscriberTxCounter.clear()
+    
     //console.log('Deleted transactions: ', result.deletedCount)
 }
 
@@ -379,7 +373,7 @@ const sortWallets = () => {
 }
 
 //startDownloadByPair()
-startDownloadByToken()
+//startDownloadByToken()
 
 module.exports = {
     sortWallets
