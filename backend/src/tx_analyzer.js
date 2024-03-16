@@ -1,5 +1,6 @@
 const { Transaction, TradeIndex } = require('./models')
 const { deleteDuplicates } = require('./trade_indexer')
+const { targetTokenPrice } = require('./price_query')
 
 const sortWallets = () => {
     return new Promise(async (resolve, reject) => {
@@ -30,7 +31,8 @@ const sortWallets = () => {
             let totalTrades = trades.length
             let profitableTrades = trades.filter(trade => trade.total > 0).length
             let tradeScore = `${Math.round(100 * profitableTrades / totalTrades)}%`
-            let totalProfit = wallet.total / 1000
+            //let totalProfit = wallet.total / 1000
+            let totalProfit = wallet.total / targetTokenPrice()
             let avgProfit = totalProfit / totalTrades
             let solScan = `https://solscan.io/account/${wallet._id}`
             let tradedTokens = trades.map(trade => trade._id).join(',')

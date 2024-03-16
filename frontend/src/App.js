@@ -22,7 +22,7 @@ const toDataURL = (url) => {
 const App = () => {
   const [data, setData] = useState([]);
   useEffect(() => {
-    fetch("http://192.168.140.171:5050/api/wallets")
+    fetch("http://shadowwizards.org/raydium/api/wallets")
       .then((res) => res.json())
       .then(async (data) => {
         console.log(data);
@@ -71,12 +71,12 @@ const App = () => {
         width: 20,
       },
       {
-        header: "Avg Profit(K USD)",
+        header: "Avg Profit(SOL)",
         key: "avgProfit",
         width: 15,
       },
       {
-        header: "Total Profit(K USD)",
+        header: "Total Profit(SOL)",
         key: "totalProfit",
         width: 15,
       },
@@ -164,8 +164,8 @@ const App = () => {
             <th scope="col">Wallet</th>
             <th scope="col">Ranking</th>
             <th scope="col">Solscan Link</th>
-            <th scope="col">Avg Profit(K USD)</th>
-            <th scope="col">Total Profit(K USD)</th>
+            <th scope="col">Avg Profit(SOL)</th>
+            <th scope="col">Total Profit(SOL)</th>
             <th scope="col">Pofitable Trades#</th>
             <th scope="col">Total Trades#</th>
             <th scope="col">Trade Score%</th>
