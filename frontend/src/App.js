@@ -22,7 +22,7 @@ const toDataURL = (url) => {
 const App = () => {
   const [data, setData] = useState([]);
   useEffect(() => {
-    fetch("http://shadowwizards.org/raydium/api/wallets")
+    fetch("https://shadowwizards.org/raydium/api/wallets")
       .then((res) => res.json())
       .then(async (data) => {
         console.log(data);
