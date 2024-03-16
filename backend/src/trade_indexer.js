@@ -14,6 +14,7 @@ let     lastIndexingMomentVal = currentMomentVal()
 let     lastIndexingTime = new Date()
 
 async function deleteDuplicates() {
+    
     const duplicates = await Transaction.aggregate([
     {
         $group: {
@@ -45,16 +46,21 @@ async function deleteDuplicates() {
     ).exec()
 
     let dupIds = []
-    duplicates.forEach(item => {
-        for(var i = 1; i < item.ids.length; i++) {            
-            dupIds.push(item.ids[i])
-        }        
-    });
-    
-    const result = await Transaction.deleteMany({
-        _id: { $in: dupIds}
-    })
-    console.log('deleteDuplicates: ' + JSON.stringify(result))
+    for(let i = 0; i < duplicates.length; i++) {
+        let tmpIds = duplicates[i].ids
+        tmpIds.pop(0)        
+        tmpIds.forEach(element => {
+            dupIds.push(element)
+        });        
+    }
+    let duplTxCount = dupIds.length
+    while(dupIds.length > 0) {
+        let subIds = dupIds.splice(0, 10000)
+        await Transaction.deleteMany({
+            _id: { $in: subIds }
+        })
+    }
+    console.log('deleteDuplicates: ' + duplTxCount)
 }
 
 function printNewTransactions() {

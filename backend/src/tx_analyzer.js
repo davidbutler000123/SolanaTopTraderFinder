@@ -5,7 +5,7 @@ const sortWallets = () => {
     return new Promise(async (resolve, reject) => {
 
         await deleteDuplicates()
-        
+
         let pipeline = [
             { $unionWith: 'tradeindexes'},
             { $group: { _id:'$owner', total: { $sum: '$total'}}},
@@ -14,6 +14,7 @@ const sortWallets = () => {
         let topWallets = await Transaction.aggregate(pipeline, { allowDiskUse: true }).limit(20).exec()
         let wallets = []
         let ranking = 1
+        
         for(let wallet of topWallets) {
             let trades = await Transaction.aggregate([
                 { 
