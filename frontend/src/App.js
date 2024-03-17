@@ -21,6 +21,8 @@ const toDataURL = (url) => {
 
 const App = () => {
   const [data, setData] = useState([]);
+  const [rankSize, setRankSize] = useState(20);
+
   useEffect(() => {
     fetch("https://shadowwizards.org/raydium/api/wallets")
       .then((res) => res.json())
@@ -29,7 +31,7 @@ const App = () => {
         setData(data);
       })
       .then((json) => console.log(json));
-  }, []);
+  }, [rankSize]);
 
   const exportExcelFile = () => {
     const workbook = new ExcelJS.Workbook();
@@ -51,7 +53,7 @@ const App = () => {
 
     sheet.getRow(1).font = {
       name: "Comic Sans MS",
-      family: 4,      
+      family: 4,
       bold: true,
     };
 
@@ -61,10 +63,11 @@ const App = () => {
         key: "wallet",
         width: 20,
       },
-      { 
-        header: "Ranking", 
-        key: "ranking", 
-        width: 10 },
+      {
+        header: "Ranking",
+        key: "ranking",
+        width: 10
+      },
       {
         header: "Solscan Link",
         key: "solScan",
@@ -115,7 +118,7 @@ const App = () => {
           totalTrades: trader?.totalTrades,
           tradeScore: trader?.tradeScore,
           tradedTokens: trader?.tradedTokens,
-        });        
+        });
       })
     );
 
@@ -149,15 +152,31 @@ const App = () => {
     });
   };
 
+  const onSelRankSize = (e) => {
+    setRankSize(e.target.value)
+  }
+
   return (
     <div style={{ padding: "30px" }}>
-      <button
-        className="btn btn-primary float-end mt-2 mb-2"
-        onClick={exportExcelFile}
-      >
-        Export
-      </button>
-      <h3>Raydium Top Trader Ranking:</h3>
+      <div style={{display:"flex", flexDirection:"row", justifyContent:"space-between", alignItems:"flex-end"}}>
+        <div>
+          <h3>Raydium Top Trader Ranking:</h3>
+        </div>
+        <div style={{display:"flex", flexDirection:"row", gap:"20px"}}>
+          <select name="rank_size" id="rank_size" className="btn mt-2 mb-2 pr-2"
+            onChange={onSelRankSize}>
+            <option value="20">20</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+          <button
+            className="btn btn-primary mt-2 mb-2"
+            onClick={exportExcelFile}
+          >
+            Export
+          </button>
+        </div>
+      </div>
       <table className="table table-bordered">
         <thead style={{ background: "yellow" }}>
           <tr>

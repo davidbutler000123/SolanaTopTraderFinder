@@ -2,7 +2,7 @@ const { Transaction, TradeIndex } = require('./models')
 const { deleteDuplicates } = require('./trade_indexer')
 const { targetTokenPrice } = require('./price_query')
 
-const sortWallets = () => {
+const sortWallets = (rankSize) => {
     return new Promise(async (resolve, reject) => {
 
         await deleteDuplicates()
@@ -12,7 +12,7 @@ const sortWallets = () => {
             { $group: { _id:'$owner', total: { $sum: '$total'}}},
             { $sort: { 'total': -1 } }
         ]
-        let topWallets = await Transaction.aggregate(pipeline, { allowDiskUse: true }).limit(20).exec()
+        let topWallets = await Transaction.aggregate(pipeline, { allowDiskUse: true }).limit(rankSize).exec()
         let wallets = []
         let ranking = 1
         

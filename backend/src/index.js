@@ -40,8 +40,10 @@ app.get('/api', (req, res) => {
 });
 
 app.get('/api/wallets', (req, res) => {  
-  //txDownloader.sortWallets()
-  txAanalyzer.sortWallets()
+  let rankSize = parseInt(req.query.rankSize)
+  if(!rankSize) rankSize = 20
+  if(rankSize < 20 || rankSize > 100) rankSize = 20
+  txAanalyzer.sortWallets(rankSize)
   .then(wallets => {
     res.send(wallets);
   })
