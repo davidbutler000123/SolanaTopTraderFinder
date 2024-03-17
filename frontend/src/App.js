@@ -21,7 +21,7 @@ const toDataURL = (url) => {
 
 const App = () => {
   const [data, setData] = useState([]);
-  const [rankSize, setRankSize] = useState(20);
+  const [rankSize, setRankSize] = useState(10);
 
   useEffect(() => {
     fetch("https://shadowwizards.org/raydium/api/wallets?rankSize=" + rankSize)
@@ -165,7 +165,9 @@ const App = () => {
         <div style={{display:"flex", flexDirection:"row", gap:"20px"}}>
           <select name="rank_size" id="rank_size" className="btn mt-2 mb-2 pr-2"
             onChange={onSelRankSize}>
+            <option value="10">10</option>
             <option value="20">20</option>
+            <option value="50">50</option>
             <option value="100">100</option>
             <option value="200">200</option>
           </select>
