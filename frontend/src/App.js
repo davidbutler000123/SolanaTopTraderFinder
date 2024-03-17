@@ -24,7 +24,7 @@ const App = () => {
   const [rankSize, setRankSize] = useState(20);
 
   useEffect(() => {
-    fetch("https://shadowwizards.org/raydium/api/wallets")
+    fetch("https://shadowwizards.org/raydium/api/wallets?rankSize=" + rankSize)
       .then((res) => res.json())
       .then(async (data) => {
         console.log(data);
