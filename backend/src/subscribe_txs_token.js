@@ -6,6 +6,7 @@ const { COIN_TOKENS } = require('./utils/coin_tokens')
 const CHAIN= 'solana'
 
 var client = new WebSocketClient();
+let activeConnection
 const { Transaction } = require('./models')
 const WSS_TOKEN_URL = util.format(`wss://public-api.birdeye.so/socket/${CHAIN}?x-api-key=${process.env.BIRDEYE_API_KEY}`)
 let SubscriberTxCounter = {
@@ -23,6 +24,7 @@ client.on('connectFailed', function (error) {
 });
 
 client.on('connect', async function (connection) {
+    activeConnection = connection
     console.log('WebSocket Client Connected');
     connection.on('error', function (error) {
         console.log("Connection Error: " + error.toString());        
@@ -30,7 +32,7 @@ client.on('connect', async function (connection) {
     });
     connection.on('close', function () {
         console.log('echo-protocol Connection Closed');
-        setTimeout(connectBirdeyeWss, 3000)
+        setTimeout(connectBirdeyeWss, 1000)
     });
     connection.on('message', async function (message) {        
         if (message.type === 'utf8') {
@@ -104,13 +106,27 @@ client.on('connect', async function (connection) {
     connection.send(JSON.stringify(msg))
 });
 
-function connectBirdeyeWss() {
-    client.abort()
+function connectBirdeyeWss() {    
     console.log(`Trying to connect BirdEye WSS: ${WSS_TOKEN_URL}`)
     client.connect(WSS_TOKEN_URL, 'echo-protocol', "https://birdeye.so");
 }
 
+let prevConnectTimeMark = Math.floor(new Date().getMinutes() / 30)
+function checkReconnect() {
+    let tmpTimeMark = Math.floor(new Date().getMinutes() / 30)  // reconnect per 30 minutes
+    if(tmpTimeMark != prevConnectTimeMark) {
+        try {
+            if(activeConnection) activeConnection.close()
+        } catch (error) {
+            console.log(error)
+        }
+        prevConnectTimeMark = tmpTimeMark
+    }
+}
+
 connectBirdeyeWss()
+
+setInterval(checkReconnect, 60000)  // check reconnecting per 1 minutes
 
 module.exports = {
     SubscriberTxCounter,
