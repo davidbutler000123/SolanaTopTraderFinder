@@ -15,19 +15,28 @@ const sortWallets = (rankSize) => {
         let topWallets = await Transaction.aggregate(pipeline, { allowDiskUse: true }).limit(rankSize).exec()
         let wallets = []
         let ranking = 1
+
+        let profitsPerSymbol = await Transaction.aggregate([
+            { $unionWith: 'tradeindexes'},
+            {
+                $match: {
+                    owner: { $in: topWallets.map(item => (item._id)) }
+                }
+            },
+            {
+                $group: { 
+                    _id: {
+                        owner: '$owner',
+                        tradeSymbol: '$tradeSymbol'
+                    },
+                    total: { $sum: '$total'}
+                }
+            }
+        ]).exec()
         
-        for(let wallet of topWallets) {
-            let trades = await Transaction.aggregate([
-                { 
-                    $unionWith: 'tradeindexes'
-                },
-                {
-                    $match: { owner: wallet._id }
-                },
-                {
-                    $group: { _id: '$tradeSymbol', total: { $sum: '$total'} }
-                }                
-            ], { allowDiskUse: true }).exec()            
+        for(let wallet of topWallets) {            
+            let trades = profitsPerSymbol.filter(item => item._id.owner == wallet._id)
+
             let totalTrades = trades.length
             let profitableTrades = trades.filter(trade => trade.total > 0).length
             let tradeScore = `${Math.round(100 * profitableTrades / totalTrades)}%`
@@ -35,7 +44,7 @@ const sortWallets = (rankSize) => {
             let totalProfit = wallet.total / targetTokenPrice()
             let avgProfit = totalProfit / totalTrades
             let solScan = `https://solscan.io/account/${wallet._id}`
-            let tradedTokens = trades.map(trade => trade._id).join(',')
+            let tradedTokens = trades.map(trade => trade._id.tradeSymbol).join(',')
 
             wallets.push({
                 wallet: wallet._id, 
