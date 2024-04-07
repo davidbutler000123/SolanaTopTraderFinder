@@ -11,12 +11,25 @@ const { Transaction } = require('./models')
 const WSS_TOKEN_URL = util.format(`wss://public-api.birdeye.so/socket/${CHAIN}?x-api-key=${process.env.BIRDEYE_API_KEY}`)
 let SubscriberTxCounter = {
     count: 0,
+    prev_txns: [],
     clear: function() {
         SubscriberTxCounter.count = 0
     },
     add: function() {
         SubscriberTxCounter.count++
-    }    
+    },
+    checkTxnDuplicate: function(hash) {
+        let dupTxns = this.prev_txns.filter(item => (item==hash))
+        if(dupTxns && dupTxns.length > 0) {
+            // console.log('duplicate occur: ' + hash)
+            return true
+        }
+        this.prev_txns.push(hash)
+        while(this.prev_txns.length > 100000) {
+            this.prev_txns.shift()
+        }
+        return false
+    }
 }
 
 client.on('connectFailed', function (error) {
@@ -46,6 +59,7 @@ client.on('connect', async function (connection) {
 
             //console.log(`owner=${tx.owner}, total=${tx.volumeUSD}, type=${tx.side}, from=${tx.from.amount}, to=${tx.to.amount}, poolId=${tx.poolId}`)
 
+            if(SubscriberTxCounter.checkTxnDuplicate(tx.txHash)) return
             const fromPrice = tx.from.price ? tx.from.price : tx.from.nearestPrice
             const toPrice = tx.to.price ? tx.to.price : tx.to.nearestPrice
             //let total = fromPrice ? fromPrice * tx.from.uiAmount : toPrice * tx.to.uiAmount
@@ -57,22 +71,19 @@ client.on('connect', async function (connection) {
 
             const fromSymbol = tx.from.symbol ? tx.from.symbol : 'unknown'
             const toSymbol = tx.to.symbol ? tx.to.symbol : 'unknown'
+            let token = tx.from.address
             let tradeSymbol = fromSymbol
-            if(tradeSymbol == COIN_TOKENS[process.env.TARGET_NAME].symbol) tradeSymbol = toSymbol
+            if(tradeSymbol == COIN_TOKENS[process.env.TARGET_NAME].symbol) {
+                tradeSymbol = toSymbol
+                token = tx.to.address
+            }
+            if(!tradeSymbol || tradeSymbol == '' || tradeSymbol == 'unknown') {
+                tradeSymbol = token
+                // console.log('Invalid tradeSymbol found: ' + tx.txHash + ' -> ' + tradeSymbol)
+            }
 
             if(type == 'sell') total *= (-1.0)
             
-            // const existTx = await Transaction.findOne({
-            //     blockUnixTime: tx.blockUnixTime,
-            //     owner: tx.owner,
-            //     type: type,
-            //     total: total
-            // })
-            
-            // if(existTx) {
-            //     return
-            // }
-
             const t = new Transaction({
                 blockUnixTime: tx.blockUnixTime,
                 source: tx.source,
@@ -81,11 +92,7 @@ client.on('connect', async function (connection) {
                 total: total,
                 tradeSymbol: tradeSymbol,
                 fromSymbol: fromSymbol,
-                // fromPrice: fromPrice,
-                // fromAmount: tx.from.uiAmount,
                 toSymbol: toSymbol
-                // toPrice: toPrice,
-                // toAmount: tx.to.uiAmount
             })
             t.save()
             .then(item => {                

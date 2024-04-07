@@ -1,5 +1,6 @@
 const { Transaction, TradeIndex } = require('./models')
 const { SubscriberTxCounter, connectBirdeyeWss } = require('./subscribe_txs_token')
+const { logWithTime } = require('./utils/global')
 
 const   DB_INDEXING_RANGE_HOURS = process.env.DB_INDEXING_RANGE_HOURS
 const   DB_RANGE_TIME = process.env.DB_RANGE_TIME
@@ -60,12 +61,13 @@ async function deleteDuplicates() {
             _id: { $in: subIds }
         })
     }
-    console.log('deleteDuplicates: ' + duplTxCount)
+    if(duplTxCount > 0) logWithTime('deleteDuplicates: ' + duplTxCount)
 }
 
 function printNewTransactions() {
-    const nowTime = new Date()
-    console.log(`${nowTime.toLocaleDateString()} ${nowTime.toLocaleTimeString()} -> New Transactions: ${SubscriberTxCounter.count} added.`)
+    // const nowTime = new Date()
+    // console.log(`${nowTime.toLocaleDateString()} ${nowTime.toLocaleTimeString()} -> New Transactions: ${SubscriberTxCounter.count} added.`)
+    logWithTime(`New Transactions: ${SubscriberTxCounter.count} added.`)
     if(SubscriberTxCounter.count == 0) {
         connectBirdeyeWss()
     }
@@ -89,7 +91,7 @@ function monitorTxTraffic() {
 }
 
 async function doIndexing() {
-    await deleteDuplicates()
+    // await deleteDuplicates()
 
     bIndexProcessing = true
     let nowTime = new Date()
@@ -124,12 +126,6 @@ async function doIndexing() {
     })))
     console.log('Insert new trade_index -> inserted: ' + result.insertedCount)
 
-    // ************ remove old transactions ****************
-    result = await Transaction.collection.deleteMany({
-        blockUnixTime: { $lt: indexUnixTime}
-    })
-    console.log(`Remove old transaction -----> result: ${JSON.stringify(result)}`)
-    
     // ********** remove old trade_index *******************
     const aWeekAgo = new Date(Date.now() - DB_RANGE_TIME)
     const nRangeStartTime = Math.floor(aWeekAgo.getTime() / 1000)
@@ -138,11 +134,19 @@ async function doIndexing() {
     })
     console.log(`Remove old trade_index -----> result: ${JSON.stringify(result)}`)
 
+    // ************ remove old transactions ****************
+    result = await Transaction.collection.deleteMany({
+        blockUnixTime: { $lt: nRangeStartTime}
+    })
+    console.log(`Remove old transaction -----> result: ${JSON.stringify(result)}`)
+    
     bIndexProcessing = false
 }
 
 setInterval(monitorTxTraffic, 10000)
-//setInterval(deleteDuplicates, 1000)
+// setTimeout(function() {
+//     setInterval(deleteDuplicates, 10000)
+// }, 5000)
 
 module.exports = {
     deleteDuplicates

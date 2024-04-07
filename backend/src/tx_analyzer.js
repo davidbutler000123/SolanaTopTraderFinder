@@ -5,10 +5,10 @@ const { targetTokenPrice } = require('./price_query')
 const sortWallets = (rankSize) => {
     return new Promise(async (resolve, reject) => {
 
-        await deleteDuplicates()
+        // await deleteDuplicates()
 
         let pipeline = [
-            { $unionWith: 'tradeindexes'},
+            // { $unionWith: 'tradeindexes'},
             { $group: { _id:'$owner', total: { $sum: '$total'}}},
             { $sort: { 'total': -1 } }
         ]
@@ -17,7 +17,7 @@ const sortWallets = (rankSize) => {
         let ranking = 1
 
         let profitsPerSymbol = await Transaction.aggregate([
-            { $unionWith: 'tradeindexes'},
+            // { $unionWith: 'tradeindexes'},
             {
                 $match: {
                     owner: { $in: topWallets.map(item => (item._id)) }
