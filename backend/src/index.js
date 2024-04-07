@@ -43,7 +43,7 @@ app.get('/api/wallets', (req, res) => {
   let rankSize = parseInt(req.query.rankSize)
   if(!rankSize) rankSize = 10
   if(rankSize < 10) rankSize = 10
-  if(rankSize > 200) rankSize = 200
+  if(rankSize > 1000) rankSize = 1000
   txAanalyzer.sortWallets(rankSize)
   .then(wallets => {
     res.send(wallets);
